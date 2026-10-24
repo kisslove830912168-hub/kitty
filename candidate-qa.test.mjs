@@ -1,0 +1,14 @@
+import assert from "node:assert/strict";
+import { buildQaPrompt, parseQa } from "./candidate-qa.mjs";
+const originalSource = 'import HowItWorksSection from "./HowItWorksSection";\n<HowItWorksSection />';
+const candidateSource = '/* section order: HowItWorksSection */\n' + originalSource;
+const prompt = buildQaPrompt({ summary: "Add section order comment", originalSource, candidateSource, diff: "+/* section order: HowItWorksSection */" });
+assert.ok(prompt.includes("COMPLETE ORIGINAL SOURCE:\n" + originalSource));
+assert.ok(prompt.includes("COMPLETE CANDIDATE SOURCE:\n" + candidateSource));
+assert.ok(prompt.includes("ACTUAL DIFF:"));
+assert.ok(parseQa("QA_STATUS=PASS\nQA_MATCH=true\nQA_REASON=Comment matches JSX.").passed);
+assert.equal(parseQa("QA_STATUS=REJECT\nQA_MATCH=false\nQA_REASON=Mismatch.").passed, false);
+assert.equal(parseQa("QA_STATUS=PASS\nQA_MATCH=true\nQA_REASON=Looks fine.\nSOURCE: code").passed, false);
+assert.equal(parseQa("QA_STATUS=PASS\nQA_MATCH=true\nQA_REASON=").passed, false);
+console.log("PASS full before/after context includes unchanged component");
+console.log("PASS QA parsing rejects malformed or rejecting responses");

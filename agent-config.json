@@ -9,6 +9,7 @@
   "allowProposalGeneration": true,
   "allowCandidateWrite": true,
   "allowAutoWrite": false,
+  "allowManualApply": true,
   "allowAutoDelete": false,
   "allowAutoGitCommit": false
 }
