@@ -1,4 +1,5 @@
-﻿import fs from "fs";
+import fs from "fs";
+import { runCandidateTypecheck } from "./candidate-typecheck.mjs";
 import path from "path";
 import readline from "readline";
 import { execFileSync } from "child_process";
@@ -156,73 +157,10 @@ function parseNumstat(numstat) {
     deleted: Number.parseInt(parts[1], 10) || 0,
   };
 }
-function runCandidateTypecheck(workspace, candidateFile, relativeTarget) {
-  const workspaceRoot = path.resolve(workspace);
-  const targetFile = safeTarget(workspaceRoot, relativeTarget);
-  const targetDir = path.dirname(targetFile);
-  const tempFile = path.join(targetDir, "__aios_candidate_typecheck__.tsx");
-  const tscJs = path.join(
-    workspaceRoot,
-    "node_modules",
-    "typescript",
-    "bin",
-    "tsc"
-  );
-
-  if (!fs.existsSync(tscJs)) {
-    return {
-      passed: false,
-      reason: "TYPECHECK_TOOL_NOT_FOUND",
-    };
-  }
-
-  if (fs.existsSync(tempFile)) {
-    return {
-      passed: false,
-      reason: "TYPECHECK_TEMP_FILE_ALREADY_EXISTS",
-    };
-  }
-
-  try {
-    fs.copyFileSync(candidateFile, tempFile);
-
-    execFileSync(
-      process.execPath,
-      [tscJs, "--noEmit"],
-      {
-        cwd: workspaceRoot,
-        encoding: "utf8",
-        windowsHide: true,
-        stdio: ["ignore", "pipe", "pipe"],
-      }
-    );
-
-    return {
-      passed: true,
-      reason: "TYPECHECK_PASS",
-    };
-  } catch (error) {
-    const output = [
-      String(error?.stdout || "").trim(),
-      String(error?.stderr || "").trim(),
-    ]
-      .filter(Boolean)
-      .join("\n");
-
-    return {
-      passed: false,
-      reason: output || error?.message || "TYPECHECK_FAILED",
-    };
-  } finally {
-    if (fs.existsSync(tempFile)) {
-      fs.unlinkSync(tempFile);
-    }
-  }
-}
 async function main() {
   const config = loadConfig();
 
-  console.log("=== AIOS Agent V1.3 ===");
+  console.log("=== AIOS Agent V1.5 ===");
   console.log(`Agent: ${config.agentName}`);
   console.log(`Workspace: ${config.workspace}`);
   console.log(`Approval Required: ${config.approvalRequired}`);
@@ -465,7 +403,7 @@ QA_REASON=<one concise sentence>
   console.log("QA_GATE=PASSED");
 console.log("TYPECHECK_GATE=RUNNING");
 
-const typecheckResult = runCandidateTypecheck(
+const typecheckResult = await runCandidateTypecheck(
   config.workspace,
   candidateFile,
   relativeTarget
