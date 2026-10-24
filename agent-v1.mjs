@@ -1,7 +1,8 @@
-import fs from "fs";
+﻿import fs from "fs";
 import path from "path";
 import readline from "readline";
 import { execFileSync } from "child_process";
+import { createHash } from "crypto";
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"));
 const CONFIG_PATH = path.join(ROOT, "agent-config.json");
@@ -60,6 +61,11 @@ function safeTarget(workspace, relativeTarget) {
   }
 
   return targetAbs;
+}
+
+function sha256File(filePath) {
+  const data = fs.readFileSync(filePath);
+  return createHash("sha256").update(data).digest("hex");
 }
 
 function extractField(text, field) {
@@ -240,6 +246,8 @@ async function main() {
   }
 
   const originalSource = fs.readFileSync(formalFile, "utf8");
+  const formalHashBefore = sha256File(formalFile);
+  try {
 
   console.log("READ_OK");
   console.log(`FILE=${relativeTarget}`);
@@ -482,6 +490,19 @@ console.log("DELETE=BLOCKED");
 console.log("GIT_COMMIT=BLOCKED");
 console.log("NEXT_STEP=FURTHER_VALIDATION_REQUIRED");
 }
+  finally {
+    const formalHashAfter = sha256File(formalFile);
+    console.log(`FORMAL_INTEGRITY_BEFORE=${formalHashBefore}`);
+    console.log(`FORMAL_INTEGRITY_AFTER=${formalHashAfter}`);
+    const formalIntegrityPassed = formalHashBefore === formalHashAfter;
+    if (!formalIntegrityPassed) {
+      console.error("FORMAL_INTEGRITY_GATE=VIOLATION");
+      process.exitCode = 1;
+    } else {
+      console.log("FORMAL_INTEGRITY_GATE=PASSED");
+    }
+  }
+}
 
 main().catch((error) => {
   console.error("");
@@ -489,3 +510,6 @@ main().catch((error) => {
   console.error(error?.message || error);
   process.exitCode = 1;
 });
+
+
+
