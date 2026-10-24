@@ -1,0 +1,14 @@
+{
+  "agentName": "AIOS Agent V1",
+  "model": "qwen3:8b",
+  "ollamaUrl": "http://127.0.0.1:11434/api/generate",
+  "workspace": "C:\\Users\\AIOS-Agent\\Desktop\\AIOS_V6_DEV\\app",
+  "approvalRequired": true,
+  "approvalMode": "human",
+  "allowAutoRead": true,
+  "allowProposalGeneration": true,
+  "allowCandidateWrite": true,
+  "allowAutoWrite": false,
+  "allowAutoDelete": false,
+  "allowAutoGitCommit": false
+}
