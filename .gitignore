@@ -1,1 +1,6 @@
 candidates/page.candidate.tsx
+
+# Local validation receipts, locks, and original-file backups
+candidates/page.candidate.manifest.json
+candidates/manual-apply.lock
+backups/
